@@ -1,40 +1,56 @@
 import axios from 'axios';
-import{z} from 'zod';
-import { useState } from'react';
+
+import { useState,useEffect } from'react';
 export const Account = () => {
     const [pass, setPass] = useState<any>('')
     const [confirmPass, setConfirmPass] = useState<any>('')
-    const passSchema=z.object({
-        password:z.string().min(6),
-        confirmPassword:z.string().min(6)
+    const [details, setDetails] = useState<any>({
+      name: '',
+      email:''
     })
-    
-        
- const passHandler1=(e:any)=>{
+    useEffect(()=>{
+      const config={
+        headers:{
+          'Authorization':`Bearer ${localStorage.getItem('jwtToken')}`
+        }
+      }
+       axios.get('http://localhost:8080/Account',config).then(res=>{
+            setDetails(res.data)})
+            .catch((err)=>{
+                console.log("didnt call")
+            })
+    },[])
+  
+    const passHandler1=(e:any)=>{
         setPass(e.target.value)
     }
     const passHandler2=(e:any)=>{
         setConfirmPass(e.target.value)
+    } 
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    if (pass !== confirmPass) {
+      prompt("Passwords do not match");
+    } else {
+      axios
+        .post("http://localhost:8080/reset", {
+          password: pass,
+          email: details.email,
+        })
+        .then((response) => {
+          alert("Password reset successful")
+        })
+        .catch((err) => {
+          alert("Error resetting password")
+        });
     }
-    const handleSubmit=(e:any)=>{
-        e.preventDefault()
-        passSchema.parse({password:pass})
-        if(pass!==confirmPass){
-            prompt("Passwords do not match")
-        }
-        else{
-            axios.post('http://localhost:8080/api/v1/auth/reset',{password:pass}).then(res=>{
-                prompt("Password reset successfully")
-            })
-        }
-       
-       
-    }
+  }
+  
 
   return (
     <div>
-      <div>Name</div>
-      <div>Password</div>
+      <div>{details.name}</div>
+      <div>{details.email}</div>
       <div>
         <h1>Reset Password</h1>
         <input type="password" placeholder='Password' onChange={passHandler1}/>

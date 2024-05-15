@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import './App.css'
-import {SideBar }from './Components/SideBAr'
 import { Videos } from './Components/Videos'
 import Signup from './Components/Signup';
 import {MainPage} from './Components/MainPage'
