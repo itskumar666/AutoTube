@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Videos" ALTER COLUMN "Size" SET DATA TYPE TEXT;
