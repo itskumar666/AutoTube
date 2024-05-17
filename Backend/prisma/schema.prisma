@@ -31,4 +31,13 @@ model Users {
   password String
   posts    Videos[]
 }
+model Token {
+  id        Int      @default(autoincrement())
+  accessToken String
+  refreshToken String
+  userEmail  String @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 

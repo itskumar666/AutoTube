@@ -8,13 +8,24 @@ import multer from 'multer';
 import { Token } from './Decoder'
 import path from 'path';
 import fs from 'fs'
+import {google} from 'googleapis'
+import dotenv from "dotenv";
+import * as crypto from "crypto";
 
 
 const prisma = new PrismaClient()
 const app = express()
 const PORT = process.env.PORT || 8080
 
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:5173' }));
+ const corsOptions ={
+    origin:'*', 
+    credentials:true, //access-control-allow-credentials:true
+     optionSuccessStatus:200,
+}
+
+app.use(cors(corsOptions)) 
+
 app.use(bodyParser.json());
 interface CustomRequest extends Request {
   userData?: {
@@ -35,7 +46,7 @@ const storage = multer.diskStorage({
 const uploadStorage = multer({ storage: storage });
 
 const verifyToken = (req: any, res: any, next: any) => {
-    console.log("token acesss")
+   
     const bearerHeader = req.headers['authorization']
     if (bearerHeader) {
         const bearer = bearerHeader.split(' ')
@@ -142,7 +153,7 @@ app.post(
 const uploadDirectory = path.join(__dirname, '..', 'uploads');
 
 app.get('/Videos',verifyToken,Token,async (req: CustomRequest, res: Response) => {
-    console.log("video acesss")
+
     const videos=await prisma.videos.findMany({
         where:{
             author:{
@@ -175,7 +186,7 @@ app.get('/Videos',verifyToken,Token,async (req: CustomRequest, res: Response) =>
 });
 
 app.get("/Account", verifyToken, Token,(req: CustomRequest, res: Response) => {
-    console.log("account acesss")
+   
   const name = req.userData?.name;
   const email = req.userData?.email;
   res.json({ name, email});
@@ -198,6 +209,55 @@ app.post('/reset', async (req, res) => {
         res.json(error);
     }
 })
+
+
+
+const oAuth2Client=new google.auth.OAuth2({
+    clientId:process.env.client_id! ,
+   clientSecret: process.env.client_secret!,
+   redirectUri: process.env.redirect_uri! 
+})
+
+console.log(process.env.redirect_uri! )
+const state = crypto.randomBytes(32).toString("hex");
+app.get('/auth/google',async(req,res)=>{
+    console.log("google acesss" )
+    const authUrl=oAuth2Client.generateAuthUrl({
+        response_type: 'token',
+        access_type:'online',
+        scope:['https://www.googleapis.com/auth/youtube.upload','https://www.googleapis.com/auth/userinfo.email','https://www.googleapis.com/auth/userinfo.profile'],
+        include_granted_scopes: true,
+        state:state
+    })
+    console.log("google acesss",authUrl)
+    res.redirect(authUrl)
+})
+app.get("/auth/google/callback", async (req: Request, res: Response) => {
+  const { code } = req.query;
+  try {
+    const { tokens } = await oAuth2Client.getToken(code as string);
+    oAuth2Client.setCredentials(tokens);
+    const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
+    const { data } = await oauth2.userinfo.get();
+    const userEmail = data.email?.toString() || "";
+
+    await prisma.token.upsert({
+      where: { userEmail },
+      update: {
+        accessToken: tokens.access_token!,
+        refreshToken: tokens.refresh_token!,
+      },
+      create: {
+        userEmail,
+        accessToken: tokens.access_token!,
+        refreshToken: tokens.refresh_token!,
+      },
+    });
+  } catch (error) {
+    console.log(error, "not found code");
+  }
+  res.redirect("http://localhost:8080/Videos");
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
