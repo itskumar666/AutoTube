@@ -19,9 +19,11 @@ const PORT = process.env.PORT || 8080
 
 app.use(cors({ origin: 'http://localhost:5173' }));
  const corsOptions ={
-    origin:'*', 
-    credentials:true, //access-control-allow-credentials:true
+    origin:'http://localhost:5173', 
+    credentials:true, 
      optionSuccessStatus:200,
+     
+     //access-control-allow-credentials:true
 }
 
 app.use(cors(corsOptions)) 
@@ -220,43 +222,54 @@ const oAuth2Client=new google.auth.OAuth2({
 
 console.log(process.env.redirect_uri! )
 const state = crypto.randomBytes(32).toString("hex");
-app.get('/auth/google',async(req,res)=>{
-    console.log("google acesss" )
-    const authUrl=oAuth2Client.generateAuthUrl({
-        response_type: 'token',
-        access_type:'online',
-        scope:['https://www.googleapis.com/auth/youtube.upload','https://www.googleapis.com/auth/userinfo.email','https://www.googleapis.com/auth/userinfo.profile'],
-        include_granted_scopes: true,
-        state:state
-    })
-    console.log("google acesss",authUrl)
-    res.redirect(authUrl)
-})
+
+app.get("/auth/google", async (req, res) => {
+  console.log("google acesss call aya");
+  const authUrl = oAuth2Client.generateAuthUrl({
+    response_type: "code",
+    access_type: "online",
+    scope: [
+      "https://www.googleapis.com/auth/youtube.upload",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ],
+    include_granted_scopes: true,
+    state: state,
+  });
+  res.json({ authUrl });
+});
 app.get("/auth/google/callback", async (req: Request, res: Response) => {
-  const { code } = req.query;
+  console.log("callback me ja rha",req)
+  const code = req.query.code;
+  if (!code) {
+    console.log('Authorization code not found in the request');
+}
+  console.log(code,"code hai ye")
   try {
     const { tokens } = await oAuth2Client.getToken(code as string);
+    console.log(tokens,"token hai ye")
     oAuth2Client.setCredentials(tokens);
     const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
+    console.log("oauht successful hogya")
     const { data } = await oauth2.userinfo.get();
     const userEmail = data.email?.toString() || "";
-
+    console.log("google acesss mil gya hai ab",userEmail)
     await prisma.token.upsert({
       where: { userEmail },
       update: {
         accessToken: tokens.access_token!,
-        refreshToken: tokens.refresh_token!,
+        refreshToken: tokens.refresh_token!||"undesfined",
       },
       create: {
         userEmail,
         accessToken: tokens.access_token!,
-        refreshToken: tokens.refresh_token!,
+        refreshToken: tokens.refresh_token! ||"undesfined",
       },
     });
   } catch (error) {
     console.log(error, "not found code");
   }
-  res.redirect("http://localhost:8080/Videos");
+  res.redirect("http://localhost:5173/Upload");
 });
 
 app.listen(PORT, () => {

@@ -8,6 +8,7 @@ export function Videos() {
   const config = {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+      
     },
   };
   useEffect(() => {
@@ -23,13 +24,19 @@ export function Videos() {
   }, []);
 
   const navigate = useNavigate();
+
+  // google authenticat route
   const googleAuthenticate =async () => {
-    try{
-   const res=await axios.get('http://localhost:8080/auth/google')
-    navigate(res.data.authUrl)}
-    catch(error){
-      console.log(error,"error")
-    }
+    try {
+      const response = await fetch('http://localhost:8080/auth/google', {
+          method: 'GET',
+          credentials: 'include' // Include credentials for CORS
+      });
+      const data = await response.json();
+      window.location.href = data.authUrl; // Navigate to the Google OAuth URL
+  } catch (error) {
+      console.error('Error fetching auth URL:', error);
+  }
   };
 
   return (
