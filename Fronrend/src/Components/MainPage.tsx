@@ -49,8 +49,7 @@ export function MainPage() {
         <button
           onClick={() => {
             navigate("/Account");
-          }}
-        >
+          }}>
           Account
         </button>
       </div>

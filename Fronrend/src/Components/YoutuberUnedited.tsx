@@ -16,7 +16,7 @@ export const EditorUnedited: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/Videos/EditorUnedited");
+        const res = await axios.get("http://localhost:8080/Videos/YoutuberUnedited");
         setVid(res.data);
       } catch (error) {
         console.error('Error fetching videos:', error);
@@ -25,23 +25,7 @@ export const EditorUnedited: React.FC = () => {
 
     fetchData();
   }, []);
-  const download=async(id:any,fileName:string)=>{
-    try {
-        const res = await axios.get(`http://localhost:8080/Videos/EditorUnedited?id=${id}`,{responseType:'blob'});
-
-        const url=URL.createObjectURL(new Blob([res.data]))
-        const link=document.createElement('a')
-        link.href=url
-        link.setAttribute('download', `${fileName}`); 
-        link.click();
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error('Error fetching videos:', error);
-      }
-      
-  }
-// implement delete feature
-
+// also implement delete vodeo feature
   return (
     <div>
       {vid ? (
@@ -49,7 +33,7 @@ export const EditorUnedited: React.FC = () => {
           <div key={v.id}>
             <h2>{v.title}</h2>
             <p>{v.description}</p>
-            <button onClick={()=>download(v.id,v.fileName)}>Download Video</button>
+            
           </div>
         ))
       ) : (

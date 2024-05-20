@@ -16,7 +16,7 @@ export const EditorUnedited: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/Videos/EditorUnedited");
+        const res = await axios.get("http://localhost:8080/Videos/YoutuberEdited");
         setVid(res.data);
       } catch (error) {
         console.error('Error fetching videos:', error);
@@ -27,7 +27,7 @@ export const EditorUnedited: React.FC = () => {
   }, []);
   const download=async(id:any,fileName:string)=>{
     try {
-        const res = await axios.get(`http://localhost:8080/Videos/EditorUnedited?id=${id}`,{responseType:'blob'});
+        const res = await axios.get(`http://localhost:8080/Videos/YoutuberEdited?id=${id}`,{responseType:'blob'});
 
         const url=URL.createObjectURL(new Blob([res.data]))
         const link=document.createElement('a')
@@ -41,7 +41,6 @@ export const EditorUnedited: React.FC = () => {
       
   }
 // implement delete feature
-
   return (
     <div>
       {vid ? (
