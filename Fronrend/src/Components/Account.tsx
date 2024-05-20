@@ -1,12 +1,21 @@
 import axios from 'axios';
+import {userState} from '../atom';
+import { useRecoilValue ,useRecoilState} from 'recoil';
+
 
 import { useState,useEffect } from'react';
+import { set } from 'zod';
+
 export const Account = () => {
+  const [userDetails,setUserDetails]=useRecoilState(userState)
+
+    const user=useRecoilValue(userState)
     const [pass, setPass] = useState<any>('')
     const [confirmPass, setConfirmPass] = useState<any>('')
     const [details, setDetails] = useState<any>({
       name: '',
-      email:''
+      email:'',
+      editorToken:''
     })
     useEffect(()=>{
       const config={
@@ -16,8 +25,8 @@ export const Account = () => {
       }
        axios.get('http://localhost:8080/Account',config).then(res=>{
             setDetails(res.data)})
-            .catch((err)=>{
-                console.log("didnt call")
+            .catch((err:Error)=>{
+                console.log(err,"didnt call")
             })
     },[])
   
@@ -36,6 +45,7 @@ export const Account = () => {
         .post("http://localhost:8080/reset", {
           password: pass,
           email: details.email,
+        
         })
         .then((response) => {
           alert("Password reset successful")
@@ -45,12 +55,22 @@ export const Account = () => {
         });
     }
   }
+  const generateToken=()=>{
+    axios.post('http://localhost:8080/generateToken',{
+      email:details.email
+    }).then(res=>{
+      setDetails(res.data)
+      setUserDetails((user)=>user.editorToken=res.data.editorToken)
+    
+  })}
+
   
 
   return (
     <div>
       <div>{details.name}</div>
       <div>{details.email}</div>
+      {user.userType==="Youtuber"?<div>Token for your Editor{details.editorToken} <button onClick={generateToken}>Generate new Token</button></div>:<div>your token{userDetails.editorToken}</div>}
       <div>
         <h1>Reset Password</h1>
         <input type="password" placeholder='Password' onChange={passHandler1}/>
@@ -60,3 +80,6 @@ export const Account = () => {
     </div>
   )
 }
+
+
+
