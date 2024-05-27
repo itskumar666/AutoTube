@@ -2,7 +2,7 @@ import {atom } from 'recoil'
 export const userState = atom({
     key: 'userState',
     default: {
-        userType: "",
+        userType: "Youtuber",
         editorToken: "",
     },
 })

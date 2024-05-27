@@ -10,7 +10,7 @@ interface Video {
   // Add other relevant fields based on your data
 }
 
-export const EditorUnedited: React.FC = () => {
+export const YoutuberEited: React.FC = () => {
   const [vid, setVid] = useState<Video[] | undefined>(undefined);
 
   useEffect(() => {

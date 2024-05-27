@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { YoutuberEited } from './YoutuberEdited';
 
 // Define a type for the video data
 interface Video {
@@ -10,7 +11,7 @@ interface Video {
   // Add other relevant fields based on your data
 }
 
-export const EditorUnedited: React.FC = () => {
+export const YoutuberUneited: React.FC = () => {
   const [vid, setVid] = useState<Video[] | undefined>(undefined);
 
   useEffect(() => {
